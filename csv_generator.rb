@@ -11,7 +11,7 @@ class CSVGenerator
 
     text_file.each do |line|
       # first six characters
-      line_id = line[0..5]
+      # line_id = line[0..5]
 
       # DX Code
       code = line[6..13]
@@ -29,10 +29,20 @@ class CSVGenerator
 
       # add diagnosis to codes CSV unless it is a category
       if diagnosis_type == 1
-        cat_code = cats.last[:id]
+        # Checking that the category does fit with the present code
+        if code.include? cats.last[:id]
+          # We find the category in the code so it is presumably a good category code
+          cat_code = cats.last[:id]
+        else
+          # The category does not match, we therefore assume that the code is in fact a code and a category at the same time
+          cat_code = code
+          cats << {id: code, title: full}
+          newline = "#{code},\"#{full}\""
+          cats_file.puts newline
+        end
         dx_code = code.gsub(cat_code, '')
         # edit this line to reformat/rearrange your CSV as desired
-        newline = "#{cat_code},#{dx_code},#{code},\"#{abbrev}\", \"#{full}\",\"#{cats.last[:title]}\""
+        newline = "#{cat_code},#{dx_code},#{code},\"#{abbrev}\",\"#{full}\",\"#{cats.last[:title]}\""
         full_csv_file.puts newline
       else
         # add to categories CSV if not a specific diagnosis
@@ -41,6 +51,6 @@ class CSVGenerator
         cats_file.puts newline
       end
     end
-    "csv file successfully created at #{full_csv_file.path}"
+    "csv file successfully created at #{full_csv_file.path} and at #{cats_file.path}"
   end
 end
